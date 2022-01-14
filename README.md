@@ -1,0 +1,1 @@
+# CI: [![Build status](https://ci.appveyor.com/api/projects/status/6v1o8a1geb7liu8f?svg=true)](https://ci.appveyor.com/project/aremarss/pageobjects)

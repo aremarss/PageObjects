@@ -1,21 +1,19 @@
 package test;
 
 import com.codeborne.selenide.Configuration;
+import data.DataHelper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import page.AccountPage;
 import page.LoginPage;
-import page.TransferPage;
 import page.VerificationPage;
 
 import static com.codeborne.selenide.Selenide.open;
 import static com.codeborne.selenide.Selenide.refresh;
-import static data.DataHelper.getUser;
+import static data.DataHelper.AuthInfo.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static page.AccountPage.getBalanceCard;
-import static page.AccountPage.getEquateValue;
 
 public class MoneyTransferTest {
 
@@ -34,9 +32,8 @@ public class MoneyTransferTest {
         refresh();
         open("http://localhost:9999");
         new LoginPage().validLogin(getUser()).validCode(getUser());
-        new AccountPage().equateBalance();
-        new TransferPage().transferReturnValues(getEquateValue());
-        assertEquals(getBalanceCard(1), getBalanceCard(2));
+        DataHelper.AuthInfo.equateBalance(1, 2); // 1 карта - 0001, 2 карта - 0002.
+        assertEquals(getBalanceCard(1), getBalanceCard(2)); // Баланс карты (1 или 2).
     }
 
     @Test
@@ -46,30 +43,35 @@ public class MoneyTransferTest {
     }
 
     @Test
+    void shouldReturnFailWithIncorrectUser() {
+        new LoginPage().invalidLogin(getIncorrectUser());
+    }
+
+    @Test
     void shouldReturnFailWithEmptyLoginAndPassword() {
-        new LoginPage().emptyLoginAndPassword();
+        new LoginPage().emptyLoginOrPassword(getEmptyUser());
     }
 
     @Test
-    void shouldReturnFailWithIncorrectLogin() {
-        new LoginPage().incorrectLogin(getUser());
+    void shouldReturnFailWithEmptyLogin() {
+        new LoginPage().emptyLoginOrPassword(getEmptyLogin());
     }
 
     @Test
-    void shouldReturnFailWithIncorrectPassword() {
-        new LoginPage().incorrectPassword(getUser());
+    void shouldReturnFailWithEmptyPassword() {
+        new LoginPage().emptyLoginOrPassword(getEmptyPassword());
     }
 
     @Test
     void shouldReturnFailWithEmptyVerifyCode() {
         new LoginPage().validLogin(getUser());
-        new VerificationPage().emptyCode();
+        new VerificationPage().emptyCode(getEmptyUser());
     }
 
     @Test
     void shouldReturnFailWithIncorrectVerifyCode() {
         new LoginPage().validLogin(getUser());
-        new VerificationPage().incorrectCode();
+        new VerificationPage().incorrectCode(getIncorrectUser());
     }
 
     @Test
@@ -84,8 +86,9 @@ public class MoneyTransferTest {
     void shouldSuccessTransferFromFirstCardToSecond() {
         String sum = "10000"; // Сумма, которую нужно перевести
         new LoginPage().validLogin(getUser()).validCode(getUser());
-        new AccountPage().toTransferCard(1).transferCard(sum); // toTransferCard(х) = выбрать номер карты (1 или 2).
-        assertEquals(20000, getBalanceCard(1)); // Баланс карты (1 или 2).
+        // toTransferCard = карта для пополнения; transferMoney = карта перечисления и сумма.
+        new AccountPage().toTransferCard(1).transferMoney(2, sum);
+        assertEquals(20000, getBalanceCard(1));
         assertEquals(0, getBalanceCard(2));
     }
 
@@ -93,7 +96,7 @@ public class MoneyTransferTest {
     void shouldSuccessTransferFromSecondCardToFirst() {
         String sum = "10000";
         new LoginPage().validLogin(getUser()).validCode(getUser());
-        new AccountPage().toTransferCard(2).transferCard(sum);
+        new AccountPage().toTransferCard(2).transferMoney(1, sum);
         assertEquals(0, getBalanceCard(1));
         assertEquals(20000, getBalanceCard(2));
     }
@@ -101,33 +104,33 @@ public class MoneyTransferTest {
     @Test
     void shouldFailWithEmptyAllTransferInput() {
         new LoginPage().validLogin(getUser()).validCode(getUser());
-        new AccountPage().toTransferCard(1).emptyAllTransferInput();
+        new AccountPage().toTransferCard(1).incorrectTransfer(0, "");
     }
 
     @Test
     void shouldFailWithEmptyFromTransferInput() {
         String sum = "1";
         new LoginPage().validLogin(getUser()).validCode(getUser());
-        new AccountPage().toTransferCard(1).emptyFromTransferInput(sum);
+        new AccountPage().toTransferCard(1).incorrectTransfer(0, sum);
     }
 
     @Test
     void shouldReturnFailWithEmptySumTransferInput() {
         new LoginPage().validLogin(getUser()).validCode(getUser());
-        new AccountPage().toTransferCard(1).transferIncorrectSum("");
+        new AccountPage().toTransferCard(1).incorrectTransfer(2, "");
     }
 
     @Test
     void shouldReturnFailTransferOnTheSameCard() {
         String sum = "10000";
         new LoginPage().validLogin(getUser()).validCode(getUser());
-        new AccountPage().toTransferCard(1).transferOnTheSameCard(sum);
+        new AccountPage().toTransferCard(1).incorrectTransfer(1, sum);
     }
 
     @Test
     void shouldReturnFailTransferOverLimit() {
         String sum = "11000";
         new LoginPage().validLogin(getUser()).validCode(getUser());
-        new AccountPage().toTransferCard(1).transferIncorrectSum(sum);
+        new AccountPage().toTransferCard(1).incorrectTransfer(2, sum);
     }
 }

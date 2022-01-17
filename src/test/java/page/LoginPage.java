@@ -1,8 +1,9 @@
 package page;
 
 import com.codeborne.selenide.SelenideElement;
-import com.github.javafaker.Faker;
 import data.DataHelper;
+
+import java.util.Objects;
 
 import static com.codeborne.selenide.Condition.*;
 import static com.codeborne.selenide.Selenide.$;
@@ -16,8 +17,6 @@ public class LoginPage {
     private final SelenideElement buttonLogin = $("[data-test-id='action-login']");
     private final SelenideElement errorNotification = $("[data-test-id='error-notification']");
 
-    Faker faker = new Faker();
-
     public VerificationPage validLogin(DataHelper.AuthInfo info) {
         loginInput.setValue(info.getLogin());
         passwordInput.setValue(info.getPassword());
@@ -25,25 +24,22 @@ public class LoginPage {
         return new VerificationPage();
     }
 
-    public void emptyLoginAndPassword() {
-        loginInput.setValue("");
-        passwordInput.setValue("");
-        buttonLogin.click();
-        errorLogin.shouldBe(visible, text("Поле обязательно для заполнения"));
-        errorPassword.shouldBe(visible, text("Поле обязательно для заполнения"));
-    }
-
-    public void incorrectLogin(DataHelper.AuthInfo info) {
-        loginInput.setValue(faker.name().username());
+    public void invalidLogin(DataHelper.AuthInfo info) {
+        loginInput.setValue(info.getLogin());
         passwordInput.setValue(info.getPassword());
         buttonLogin.click();
         errorNotification.shouldBe(visible);
     }
 
-    public void incorrectPassword(DataHelper.AuthInfo info) {
+    public void emptyLoginOrPassword(DataHelper.AuthInfo info) {
         loginInput.setValue(info.getLogin());
-        passwordInput.setValue(faker.internet().password());
+        passwordInput.setValue(info.getPassword());
         buttonLogin.click();
-        errorNotification.shouldBe(visible);
+        if (Objects.requireNonNull(loginInput.getValue()).isEmpty()) {
+            errorLogin.shouldBe(visible, text("Поле обязательно для заполнения"));
+        }
+        if (Objects.requireNonNull(passwordInput.getValue()).isEmpty()) {
+            errorPassword.shouldBe(visible, text("Поле обязательно для заполнения"));
+        }
     }
 }

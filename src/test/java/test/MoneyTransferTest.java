@@ -12,7 +12,7 @@ import page.VerificationPage;
 
 import static com.codeborne.selenide.Selenide.open;
 import static com.codeborne.selenide.Selenide.refresh;
-import static data.DataHelper.AuthInfo.*;
+import static data.DataHelper.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class MoneyTransferTest {
@@ -32,14 +32,16 @@ public class MoneyTransferTest {
         refresh();
         open("http://localhost:9999");
         new LoginPage().validLogin(getUser()).validCode(getUser());
-        DataHelper.AuthInfo.equateBalance(1, 2); // 1 карта - 0001, 2 карта - 0002.
-        assertEquals(getBalanceCard(1), getBalanceCard(2)); // Баланс карты (1 или 2).
+        DataHelper.equateBalance(1, 2); // 1 карта - 0001, 2 карта - 0002.
+        var accountPage = new AccountPage();
+        assertEquals(accountPage.getBalanceCard(1), accountPage.getBalanceCard(2)); // Баланс карты (1 или 2).
     }
 
     @Test
     void shouldReturnSuccessLogin() {
         new LoginPage().validLogin(getUser()).validCode(getUser());
-        assertEquals(getBalanceCard(1), getBalanceCard(2));
+        var accountPage = new AccountPage();
+        assertEquals(accountPage.getBalanceCard(1), accountPage.getBalanceCard(2));
     }
 
     @Test
@@ -77,8 +79,9 @@ public class MoneyTransferTest {
     @Test
     void shouldGetBalanceFromCards() {
         new LoginPage().validLogin(getUser()).validCode(getUser());
-        assertEquals(10000, getBalanceCard(1));
-        assertEquals(10000, getBalanceCard(2));
+        var accountPage = new AccountPage();
+        assertEquals(10000, accountPage.getBalanceCard(1));
+        assertEquals(10000, accountPage.getBalanceCard(2));
 
     }
 
@@ -87,18 +90,18 @@ public class MoneyTransferTest {
         String sum = "10000"; // Сумма, которую нужно перевести
         new LoginPage().validLogin(getUser()).validCode(getUser());
         // toTransferCard = карта для пополнения; transferMoney = карта перечисления и сумма.
-        new AccountPage().toTransferCard(1).transferMoney(2, sum);
-        assertEquals(20000, getBalanceCard(1));
-        assertEquals(0, getBalanceCard(2));
+        var accountPage = new AccountPage().toTransferCard(1).transferMoney(2, sum);
+        assertEquals(20000, accountPage.getBalanceCard(1));
+        assertEquals(0, accountPage.getBalanceCard(2));
     }
 
     @Test
     void shouldSuccessTransferFromSecondCardToFirst() {
         String sum = "10000";
         new LoginPage().validLogin(getUser()).validCode(getUser());
-        new AccountPage().toTransferCard(2).transferMoney(1, sum);
-        assertEquals(0, getBalanceCard(1));
-        assertEquals(20000, getBalanceCard(2));
+        var accountPage = new AccountPage().toTransferCard(2).transferMoney(1, sum);
+        assertEquals(0, accountPage.getBalanceCard(1));
+        assertEquals(20000, accountPage.getBalanceCard(2));
     }
 
     @Test

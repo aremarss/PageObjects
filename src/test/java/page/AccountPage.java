@@ -1,14 +1,13 @@
 package page;
 
-import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
 import java.util.Objects;
 
 import static com.codeborne.selenide.Condition.*;
 import static com.codeborne.selenide.Selenide.$;
-import static com.codeborne.selenide.Selenide.$$;
-import static data.DataHelper.AuthInfo.shortCardNumber;
+import static data.DataHelper.cards;
+import static data.DataHelper.shortCardNumber;
 
 public class AccountPage {
 
@@ -18,8 +17,21 @@ public class AccountPage {
     }
 
     public TransferPage toTransferCard(int cardNumber) {
-        ElementsCollection cards = $$(".list__item");
         cards.findBy(matchText(Objects.requireNonNull(shortCardNumber(cardNumber)))).$("button").click();
         return new TransferPage();
+    }
+
+    public int getBalanceCard(int cardNumber) {
+        var text = cards.findBy(matchText(Objects.requireNonNull(shortCardNumber(cardNumber)))).text();
+        return extractBalance(text);
+    }
+
+    public int extractBalance(String text) {
+        String balanceStart = "баланс: ";
+        String balanceFinish = " р.";
+        var start = text.indexOf(balanceStart);
+        var finish = text.indexOf(balanceFinish);
+        var value = text.substring(start + balanceStart.length(), finish);
+        return Integer.parseInt(value);
     }
 }

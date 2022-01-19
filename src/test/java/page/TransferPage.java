@@ -5,7 +5,7 @@ import org.openqa.selenium.Keys;
 
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.$;
-import static data.DataHelper.AuthInfo.cardNumber;
+import static data.DataHelper.cardNumber;
 
 public class TransferPage {
 
